@@ -18,24 +18,40 @@ from scapy.all import *
 
 # ----------------- </functions> -----------------
 
+# ----------------- <MAIN> -----------------
+
+def main():
+
+# ----------------- </MAIN> -----------------
+
+"""
+Only runs when YOU execute this file directly (python3 scanner.py).
+If another script imports this file, this block is skipped — so your
+functions can be reused without triggering a scan automatically.
+"""
+if __name__ == "__main__":
+	main()
 
 
 
-# Zielsystem definieren
-target_ip = "91.99.171.164"
 
-# Portbereich definieren
-start_port = 1
-end_port = 1000
 
-# TCP-Paket erstellen
-tcp_packet = IP(dst=target_ip)/TCP(dport=(start_port,end_port), flags="S")
-
-# Portscan durchführen
-answered, unanswered = sr(tcp_packet, timeout=1)
-
-# Ausgabe der Ergebnisse
-for packet in answered:
-    if packet[1].haslayer(TCP) and packet[1][TCP].flags == "SA":
-        print("Port", packet[1][TCP].sport, "is open.")
-
+#
+# # Zielsystem definieren
+# target_ip = "91.99.171.164"
+#
+# # Portbereich definieren
+# start_port = 1
+# end_port = 1000
+#
+# # TCP-Paket erstellen
+# tcp_packet = IP(dst=target_ip)/TCP(dport=(start_port,end_port), flags="S")
+#
+# # Portscan durchführen
+# answered, unanswered = sr(tcp_packet, timeout=1)
+#
+# # Ausgabe der Ergebnisse
+# for packet in answered:
+#     if packet[1].haslayer(TCP) and packet[1][TCP].flags == "SA":
+#         print("Port", packet[1][TCP].sport, "is open.")
+#
