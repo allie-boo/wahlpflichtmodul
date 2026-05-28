@@ -6,9 +6,10 @@
 
 
 # ----------------- <import> -----------------
-from scapy.all import *
+from scapy.all import IP, TCP
 import argparse
 import random
+import sys
 
 # ----------------- </import> -----------------
 
@@ -17,7 +18,8 @@ import random
 
 # TODO: Function SCANNER --type SYN
 #target ip (string), port (int), timeout (float, default= 1.0)
-def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> str:
+def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> tuple:
+
     tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
 
 
