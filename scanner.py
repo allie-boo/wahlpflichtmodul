@@ -1,3 +1,10 @@
+# ----------------- <rules> ------------------
+#function names: snake_case
+#variable names: camelCase
+
+# ----------------- </rules> ------------------
+
+
 # ----------------- <import> -----------------
 
 import argparse
@@ -8,7 +15,11 @@ import argparse
 
 # ----------------- <functions> -----------------
 
-# TODO: Function SCANNER --type SYN
+# TODO: Function SCANNER --type TCP
+#target (string), ports (list), type (string)
+def scanner_tcp():
+
+
 
 # TODO: Function port randomise --port-randomizer
 
