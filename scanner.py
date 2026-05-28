@@ -18,7 +18,7 @@ import sys
 
 # TODO: Function SCANNER --type SYN
 #target ip (string), port (int), timeout (float, default= 1.0)
-def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> tuple:
+def scan_syn(target_ip: str, port: int, timeout: float = 1.0) -> tuple:
 
     tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
 
@@ -74,7 +74,25 @@ def load_targets_from_file(filepath: str) -> list:
 def parse_ports(ports: str) -> list:
 
 
+# run_scan
+def run_scan(target: str, ports: list, type: str):
+    """
+    function takes target IP as STRING, ports as LIST, type as STRING
+    """
 
+    # --> dispatch to scan function
+    match type:
+        case "SYN":
+            # TODO: see scan_syn add timeout?
+            scan_syn(target, ports)
+        case "TCP":
+            scan_tcp(target, ports)
+        case "UDP":
+            scan_udp(target, ports)
+
+
+
+    pass
 
 # ----------------- </functions> -----------------
 
