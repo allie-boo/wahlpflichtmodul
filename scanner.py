@@ -6,17 +6,17 @@
 
 
 # ----------------- <import> -----------------
-
+from scapy.all import *
 import argparse
 import random
 
 # ----------------- </import> -----------------
-from scapy.all import *
+
 
 # ----------------- <functions> -----------------
 
-# TODO: Function SCANNER --type syn
-#target ip (string), port (int), timeout (float, standardmäßig auf 1,0)
+# TODO: Function SCANNER --type SYN
+#target ip (string), port (int), timeout (float, default= 1.0)
 def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> str:
     tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
 
@@ -26,6 +26,8 @@ def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> str:
 # TODO: Function port randomise --port-randomizer
 
 # TODO: sleep timer -s --sleep
+
+# TODO: TCP Connect SCAN --type TCP
 
 # TODO: UDP SCAN --type UDP
 
@@ -105,7 +107,7 @@ def main():
 
     # ── Other options (unchanged) ──────────────────────────────────
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
-    parser.add_argument("--type", default="SYN", choices=["TCP", "UDP"], help="Scan type  (default: SYN)")
+    parser.add_argument("--type", default="SYN", choices=["SYN", "TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
 
     args = parser.parse_args()
