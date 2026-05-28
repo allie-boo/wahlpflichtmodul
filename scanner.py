@@ -22,6 +22,40 @@ import argparse
 
 # TODO: Ping ICMP Packete
 
+# target IP from file
+def load_targets_from_file(filepath: str) -> list:
+    """
+    Read a .txt file and return a list of IP addresses / hostnames.\n
+
+    Expected file format — one target per line:
+        192.168.1.1\n
+        192.168.1.2\n
+        scanme.nmap.org\n
+
+    Lines starting with # are treated as comments and ignored.
+    Empty lines are also ignored.
+    """
+    targets = []
+    try:
+        with open(filepath, "r") as f:
+            for line in f:
+                line = line.strip()  # remove spaces and newlines
+                if line and not line.startswith("#"):  # skip empty lines and comments
+                    targets.append(line)
+    except FileNotFoundError:
+        print(f"[ERROR] File not found: {filepath}")
+        sys.exit(1)
+    except PermissionError:
+        print(f"[ERROR] Cannot read file (permission denied): {filepath}")
+        sys.exit(1)
+
+    if not targets:
+        print(f"[ERROR] No valid targets found in file: {filepath}")
+        sys.exit(1)
+
+    return targets
+
+
 # ----------------- </functions> -----------------
 
 # ----------------- <MAIN> -----------------
@@ -56,8 +90,7 @@ def main():
     # ── Other options (unchanged) ──────────────────────────────────
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
     parser.add_argument("--type", default="SYN", choices=["SYN"], help="Scan type  (default: SYN)")
-    parser.add_argument("--threads", type=int, default=100, help="Number of threads  (default: 100)")
-    parser.add_argument("--timeout", type=float, default=2.0, help="Timeout per port in seconds  (default: 2.0)")
+    parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
 
     args = parser.parse_args()
 
