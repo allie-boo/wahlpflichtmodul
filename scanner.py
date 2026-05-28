@@ -8,15 +8,13 @@ import argparse
 
 # ----------------- <functions> -----------------
 
-# TODO: Function for user input "ip, ports, flags" - +error_handling
+# TODO: Function SCANNER --type SYN
 
-# TODO: Function IP-address tabel .txt
+# TODO: Function port randomise --port-randomizer
 
-# TODO: Function port randomise
+# TODO: sleep timer -s --sleep
 
-# TODO: sleep timer
-
-# TODO: UDP SCAN
+# TODO: UDP SCAN --type UDP
 
 # TODO: Output to JSON
 
