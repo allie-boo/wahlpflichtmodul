@@ -8,13 +8,14 @@
 # ----------------- <import> -----------------
 
 import argparse
-
+import random
 
 # ----------------- </import> -----------------
 
 
 # ----------------- <functions> -----------------
 
+# TODO: Function SCANNER --type TCP
 # TODO: Function SCANNER --type TCP
 #target (string), ports (list), type (string)
 def scanner_tcp():
@@ -64,6 +65,11 @@ def load_targets_from_file(filepath: str) -> list:
 
     return targets
 
+# port parser
+def parse_ports(ports: str) -> list:
+
+
+
 
 # ----------------- </functions> -----------------
 
@@ -98,7 +104,7 @@ def main():
 
     # ── Other options (unchanged) ──────────────────────────────────
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
-    parser.add_argument("--type", default="SYN", choices=["SYN"], help="Scan type  (default: SYN)")
+    parser.add_argument("--type", default="SYN", choices=["TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
 
     args = parser.parse_args()
@@ -116,9 +122,16 @@ def main():
     # ── Parse ports once (same for all targets) ───────────────────
     ports = parse_ports(args.ports)
 
+    # ── Randomize port order if flag was set ──────────────────────
+    # args.port_randomize is True if user passed --port-randomize, False if not.
+    # Note: argparse converts hyphens to underscores → --port-randomize becomes args.port_randomize
+    if args.port_randomize:
+        random.shuffle(ports)  # shuffle() modifies the list in place — no new list created
+        print(f"[INFO] Port order randomized")
+
     # ── Scan each target ──────────────────────────────────────────
     for target in targets:
-        run_scan(target, ports, args.type, args.threads, args.timeout)
+        run_scan(target, ports, args.type)
 
 # ----------------- </MAIN> -----------------
 
