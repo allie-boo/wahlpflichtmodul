@@ -11,14 +11,15 @@ import argparse
 import random
 
 # ----------------- </import> -----------------
-
+from scapy.all import *
 
 # ----------------- <functions> -----------------
 
-# TODO: Function SCANNER --type TCP
-# TODO: Function SCANNER --type TCP
-#target (string), ports (list), type (string)
-def scanner_tcp():
+# TODO: Function SCANNER --type syn
+#target ip (string), port (int), timeout (float, standardmäßig auf 1,0)
+def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> str:
+    tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+
 
 
 
