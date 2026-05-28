@@ -18,7 +18,7 @@ import argparse
 
 # TODO: Output to JSON
 
-# TODO: Ping ICMP Packete
+# TODO: Ping ICMP Packages
 
 # target IP from file
 def load_targets_from_file(filepath: str) -> list:
