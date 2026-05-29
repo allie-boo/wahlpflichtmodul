@@ -12,6 +12,7 @@ import argparse
 import random
 import sys
 import time
+import socket
 
 # ----------------- </import> -----------------
 
@@ -36,6 +37,26 @@ def scan_syn(target_ip: str, ports: list, timeout: float = 1.0, sleep_timer: flo
 # TODO: TCP Connect SCAN --type TCP
 
 # TODO: UDP SCAN --type UDP
+
+#udp_scanner
+def scan_udp(target:str,ports:list[int],sleep_timer:float):
+    for port in ports:
+        sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(sleep_timer)
+        try:
+            sock.sendto(b"test", (target, port))
+
+            data, addr = sock.recvfrom(1024)
+
+            print(f"[OPEN] UDP {port}")
+        except socket.timeout:
+            print(f"[NO RESPONSE] UDP {port}")
+
+        except Exception as e:
+            print(f"[ERROR] UDP {port}: {e}")
+
+        finally:
+            sock.close()
 
 # TODO: Output to JSON
 
