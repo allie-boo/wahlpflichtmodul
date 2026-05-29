@@ -25,9 +25,6 @@ def scan_syn(target_ip: str, port: int, timeout: float = 1.0) -> tuple:
 
 
 
-# TODO: Function port randomise --port-randomizer
-
-# TODO: sleep timer -s --sleep
 
 # TODO: TCP Connect SCAN --type TCP
 
@@ -129,6 +126,7 @@ def main():
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
     parser.add_argument("--type", default="SYN", choices=["SYN", "TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
+    # TODO: sleep timer -s --sleep
 
     args = parser.parse_args()
 
