@@ -73,14 +73,12 @@ def scan_syn(
     # return open_ports, other_ports
 # -----------------------/oder------------------------------
 
+# TODO: Banner Grabber
 
 
 
-# TODO: TCP Connect SCAN --type TCP
-
-# TODO: UDP SCAN --type UDP
-
-
+# udp_scanner --type UDP
+def scan_udp(target: str, port: int, sleep_timer: float):
 
 #udp_scanner
 def scan_udp(target: str, port: int, timeout: float = 1.0) -> tuple[int, bool]:
