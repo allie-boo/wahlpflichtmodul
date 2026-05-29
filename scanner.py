@@ -2,13 +2,16 @@
 #function names: snake_case
 #variable names: camelCase
 
+
 # ----------------- </rules> ------------------
 
 
 # ----------------- <import> -----------------
-from scapy.all import *
+from scapy.all import IP, TCP
 import argparse
 import random
+import sys
+import time
 
 # ----------------- </import> -----------------
 
@@ -16,16 +19,19 @@ import random
 # ----------------- <functions> -----------------
 
 # TODO: Function SCANNER --type SYN
-#target ip (string), port (int), timeout (float, default= 1.0)
-def scanner_syn(target_ip: str, port: int, timeout: float = 1.0) -> str:
-    tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+#target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
+def scan_syn(target_ip: str, ports: list, timeout: float = 1.0, sleep_timer: float) -> tuple:
+
+    for port in ports:
+
+        tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+
+
+        time.sleep(sleep_timer)
 
 
 
 
-# TODO: Function port randomise --port-randomizer
-
-# TODO: sleep timer -s --sleep
 
 # TODO: TCP Connect SCAN --type TCP
 
@@ -91,7 +97,24 @@ def parse_ports(ports: str) -> list[int]:
 
     return sorted(result)
 
+# run_scan
+def run_scan(target: str, ports: list, type: str, sleep_time: float) -> None:
+    """
+    function takes target IP as STRING, ports as LIST, type as STRING, sleep_time as FLOAT
+    """
 
+    # --> dispatch to scan function
+    match type:
+        case "SYN":
+            scan_syn(target, ports, sleep_time)
+        case "TCP":
+            scan_tcp(target, ports, sleep_time)
+        case "UDP":
+            scan_udp(target, ports, sleep_time)
+
+
+
+    pass
 
 # ----------------- </functions> -----------------
 
@@ -128,6 +151,7 @@ def main():
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
     parser.add_argument("--type", default="SYN", choices=["SYN", "TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
+    parser.add_argument("-s", "--sleep", default=random.randint(2, 30) , type=float, help="Sleep time in seconds (default: RANDOM range: 2-)")
 
     args = parser.parse_args()
 
@@ -153,7 +177,7 @@ def main():
 
     # ── Scan each target ──────────────────────────────────────────
     for target in targets:
-        run_scan(target, ports, args.type)
+        run_scan(target, ports, args.type, args.sleep)
 
 # ----------------- </MAIN> -----------------
 
