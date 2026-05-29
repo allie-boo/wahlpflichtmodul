@@ -78,9 +78,6 @@ def scan_syn(
 
 
 # udp_scanner --type UDP
-def scan_udp(target: str, port: int, sleep_timer: float):
-
-#udp_scanner
 def scan_udp(target: str, port: int, timeout: float = 1.0) -> tuple[int, bool]:
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
