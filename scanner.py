@@ -94,15 +94,15 @@ def scan_udp(target: str, port: int, sleep_timer: float):
 
         data, addr = sock.recvfrom(1024)
 
-        return (True, port)
+        return (port, True)
 
     except socket.timeout:
 
-        return (False, port)
+        return (port, False)
 
     except Exception:
 
-        return (False, port)
+        return (port, False)
 
     finally:
 
