@@ -69,8 +69,27 @@ def load_targets_from_file(filepath: str) -> list:
     return targets
 
 # port parser
-def parse_ports(ports: str) -> list:
+def parse_ports(ports: str) -> list[int]:
+    result = set()
 
+    for part in ports.split(","):
+        part = part.strip()
+
+        if "-" in part:
+            start, end = part.split("-")
+
+            start = int(start)
+            end = int(end)
+
+            if start > end:
+                start, end = end, start
+
+            result.update(range(start, end + 1))
+
+        else:
+            result.add(int(part))
+
+    return sorted(result)
 
 
 
