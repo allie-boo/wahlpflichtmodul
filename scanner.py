@@ -7,7 +7,7 @@
 
 
 # ----------------- <import> -----------------
-from scapy.all import IP, TCP
+from scapy.all import IP, TCP, sr1
 import argparse
 import random
 import sys
@@ -20,15 +20,37 @@ import time
 
 # TODO: Function SCANNER --type SYN
 #target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
-def scan_syn(target_ip: str, ports: list, timeout: float = 1.0, sleep_timer: float) -> tuple:
+def scan_syn(
+        target_ip: str,
+        ports: list[int],
+        sleep_timer: float,
+        timeout: float = 1.0 ) -> tuple[list[int], list[int]]:
+
+    open_ports: list[int] = []
+    other_ports: list[int] = []
 
     for port in ports:
-
         tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
 
+        #Send and wait for response
+        resp = sr1(tcp_packet, timeout=timeout, verbose=False)
+
+        if resp is None:
+            # no response → filtered / dropped / host down
+            other_ports.append(port)
+        elif resp.haslayer(TCP):
+            flags = resp.getlayer(TCP).flags
+            if flags == 0x12:  # SYN/ACK -> acknolagement ist there -> Port open
+                open_ports.append(port)
+            else:
+                # RST/ACK or other flags → not open
+                other_ports.append(port)
+        else:
+            other_ports.append(port)
 
         time.sleep(sleep_timer)
 
+    return open_ports, other_ports
 
 
 
