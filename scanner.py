@@ -243,17 +243,17 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float) -
             try:
                 port, status = future.result()
                 if status:
-                    results.append((port, "open"))
-                results.append((port, "Blocked / Filtered / Closed"))
+                    results.append((port, "open", type))
+                results.append((port, "Blocked / Filtered / Closed", type))
             except Exception as e:
                 port = futures[future]
-                results.append((port, "error"))
+                results.append((port, "error", type))
 
     # Sort results by port number before printing
     results.sort(key=lambda x: x[0])
 
     open_count = 0
-    for port, status in results:
+    for port, status, type_of in results:
         if status == "open":
             open_count += 1
     # User notification on CLI
@@ -267,9 +267,9 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float) -
             print(f"  Ports     : {ports})")
         print(f"  Threads   : {threads}")
         print("\n" + "=" * 60)
-        for port, status in results:
+        for port, status, type_of in results:
             if status == "open":
-                print(f"  [{status.upper():15s}] {port:5d}")
+                print(f"  [{status.upper():15s}] {port:5d} {type_of}")
 
         print("═" * 60)
         print(f"  Scan complete. {open_count} open port(s) found.")
