@@ -14,6 +14,7 @@ import socket
 import sys
 import time
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
 
 # ----------------- </import> -----------------
@@ -143,13 +144,16 @@ def parse_ports(ports: str) -> list[int]:
     return sorted(result)
 
 # run_scan
-def run_scan(target: str, ports: list, type: str, sleep_time: float = random.uniform(2.0, 30.0)) -> None:
+def run_scan(target: str, ports: list, type: str,threads: int, timeout: float, sleep_time: float = random.uniform(2.0, 30.0)) -> None:
     """
     function takes target IP as STRING, ports as LIST, type as STRING, sleep_time as FLOAT
     """
 
     try:
         target_ip = socket.gethostbyname(target)
+    except socket.gaierror:
+        print(f"[ERROR] Cannot resolve: {target}")
+        sys.exit(1)
 
     # select scan function
     scan_function = {
@@ -163,13 +167,49 @@ def run_scan(target: str, ports: list, type: str, sleep_time: float = random.uni
     print("\n" + "=" * 60)
     print(f"  Target    : {target_ip}")
     print(f"  Scan Type : {type}")
+    if len(ports) > 10:
+        print(f"  Ports     : {len(ports)} ({min(ports)}–{max(ports)})")
+    else:
+        print(f"  Ports     : {ports})")
+    print(f"  Threads   : {threads}")
+    print("\n" + "=" * 60)
 
+    results = []
 
-    print(f"  Ports     : {len(ports)} ({min(ports)}–{max(ports)})")
+    # ThreadPoolExecutor: run up to `threads` tasks in parallel
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        # Submit all port scan jobs to the thread pool
+        # Each future represents a pending result
+        futures = {
+            executor.submit(scan_function, target_ip, port, timeout): port
+            for port in ports
+        }
 
+        # as_completed() yields futures as they finish (not in order)
+        for future in as_completed(futures):
+            try:
+                port, status, proto = future.result()
+                results.append((port, status, proto))
+            except Exception as e:
+                port = futures[future]
+                results.append((port, "error", type))
 
+    # Sort results by port number before printing
+    results.sort(key=lambda x: x[0])
 
-    pass
+    open_count = 0
+    for port, status, proto in results:
+        if status == "open" or status == "open|filtered":
+            try:
+                service = socket.getservbyport(port, proto.lower())
+            except:
+                service = "unknown"
+            print(f"  [{status.upper():15s}] {port:5d}/{proto.lower():<4s}  {service}")
+            open_count += 1
+
+    print("═" * 60)
+    print(f"  Scan complete. {open_count} open/open|filtered port(s) found.")
+    print("═" * 60 + "\n")
 
 # ----------------- </functions> -----------------
 
@@ -207,7 +247,8 @@ def main():
     parser.add_argument("--type", default="SYN", choices=["SYN", "TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
     parser.add_argument("-s", "--sleep", default=2.0 , type=float, help="Sleep time in seconds (default: RANDOM range: 2-)")
-
+    parser.add_argument("--threads", type=int, default=100, help="Number of threads (default: 100)")
+    parser.add_argument("--timeout", type=float, default=2.0, help="Timeout per port in seconds")
     args = parser.parse_args()
 
     # ── Build the target list ──────────────────────────────────────
@@ -232,7 +273,7 @@ def main():
 
     # ── Scan each target ──────────────────────────────────────────
     for target in targets:
-        run_scan(target, ports, args.type, args.sleep)
+        run_scan(target, ports, args.type, args.threads, args.timeout, args.sleep)
 
 # ----------------- </MAIN> -----------------
 
