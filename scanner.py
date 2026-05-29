@@ -87,7 +87,7 @@ def scan_udp(target: str, port: int, timeout: float = 1.0) -> tuple[int, bool]:
     try:
         sock.sendto(b"test", (target, port))
 
-        #data, addr = sock.recvfrom(1024)
+        sock.recvfrom(1024)
 
         return port, True
 
