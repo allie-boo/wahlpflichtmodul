@@ -28,28 +28,31 @@ def scan_syn(
         target_ip: str,
         ports: list[int],
         sleep_timer: float,
-        timeout: float = 1.0 ) -> tuple[list[int], list[int]]:
+        timeout: float = 1.0 ) -> tuple[list[int], list[int]]: #returns two lists type int
 
     open_ports: list[int] = []
-    other_ports: list[int] = []
+    other_ports: list[int] = [] #closed, filtered, no answer
 
     for port in ports:
         tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
 
         #Send and wait for response
-        resp = sr1(tcp_packet, timeout=timeout, verbose=False)
-
+        resp = sr1(tcp_packet, timeout=timeout, verbose=False) #verbose stops standard scapy return
+        #returns none (no answer during timeout), resp
         if resp is None:
             # no response → filtered / dropped / host down
-            other_ports.append(port)
+            other_ports.append(port)    #sorts into list
+
         elif resp.haslayer(TCP):
             flags = resp.getlayer(TCP).flags
-            if flags == 0x12:  # SYN/ACK -> acknolagement ist there -> Port open
-                open_ports.append(port)
+
+            if flags == 0x12:  # SYN/ACK -> acknolagement ist there -> Port open & accepts
+                open_ports.append(port) #sorts into list
             else:
                 # RST/ACK or other flags → not open
                 other_ports.append(port)
-        else:
+
+        else: # resp is not none and no tcp layer
             other_ports.append(port)
 
         time.sleep(sleep_timer)
