@@ -16,6 +16,8 @@ import time
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
+from scapy.volatile import RandShort, RandInt
+
 
 # ----------------- </import> -----------------
 
@@ -30,7 +32,7 @@ def scan_syn(
         port: int,
         timeout: float = 1.0 ) -> tuple[int, bool]: #returns bool and port
 
-    tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S") #Zieladresse and header
+    tcp_packet = builder_syn_packet_obfuscated(target_ip, port)
     resp = sr1(
         tcp_packet, #sends and waits for one answer
         timeout=timeout, #max wait time
@@ -106,6 +108,30 @@ def scan_udp(target: str, port: int, timeout: float = 1.0) -> tuple[int, bool]:
 #───── </SCANNER> ────────────────
 
 # TODO: Output to JSON
+
+#syn packet builder
+#builds and returns one packet
+def builder_syn_packet_obfuscated(target_ip: str, port: int) -> IP: #function returns ip-layer objekt
+    #building ip-layer
+    ip_layer = IP(
+        # dont put scr -> OS/Scapy takes real ip address,
+        # response comes to me
+        dst=target_ip, #sets destination ip
+        ttl=random.randint(32, 128),  # slight variation to vary time-to-live field in ip-header
+        id=RandShort()  #random IP-ID to vary header pattern
+    )
+
+    #building tcp-layer
+    tcp_layer = TCP(
+        sport=RandShort(),  #sport=TCP source port, gives random 16 bit value
+        dport=port, #dport= destination port
+        seq=RandInt(),  #seq=TCP sequenz number field
+        flags="S", #syn flag ist set
+        window=random.choice([1024, 2048, 4096])  #random pick
+    )
+
+    #stacking IP and TCP into packet for return
+    return ip_layer / tcp_layer
 
 # target IP from file
 def load_targets_from_file(filepath: str) -> list:
