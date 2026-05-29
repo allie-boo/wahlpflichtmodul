@@ -83,6 +83,7 @@ def scan_syn(
 
 #udp_scanner
 def scan_udp(target:str,ports:list[int],sleep_timer:float):
+    Portstatus = []
     for port in ports:
         sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(sleep_timer)
@@ -91,15 +92,19 @@ def scan_udp(target:str,ports:list[int],sleep_timer:float):
 
             data, addr = sock.recvfrom(1024)
 
-            print(f"[OPEN] UDP {port}")
+            Portstatus.append(True,port)
         except socket.timeout:
             print(f"[NO RESPONSE] UDP {port}")
+            Portstatus.append(False, port)
 
         except Exception as e:
             print(f"[ERROR] UDP {port}: {e}")
+            Portstatus.append(False, port)
 
         finally:
             sock.close()
+
+    return Portstatus
 #───── </SCANNER> ────────────────
 
 # TODO: Output to JSON
