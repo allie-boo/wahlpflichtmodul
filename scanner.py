@@ -7,29 +7,56 @@
 
 
 # ----------------- <import> -----------------
-from scapy.all import IP, TCP
 import argparse
 import random
+import socket
 import sys
 import time
-import socket
+
+from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
 
 # ----------------- </import> -----------------
 
 
 # ----------------- <functions> -----------------
 
+#───── <SCANNER> ────────────────
 # TODO: Function SCANNER --type SYN
 #target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
-def scan_syn(target_ip: str, ports: list, timeout: float = 1.0, sleep_timer: float) -> tuple:
+def scan_syn(
+        target_ip: str,
+        ports: list[int],
+        sleep_timer: float,
+        timeout: float = 1.0 ) -> tuple[list[int], list[int]]: #returns two lists type int
+
+    open_ports: list[int] = []
+    other_ports: list[int] = [] #closed, filtered, no answer
 
     for port in ports:
-
         tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
 
+        #Send and wait for response
+        resp = sr1(tcp_packet, timeout=timeout, verbose=False) #verbose stops standard scapy return
+        #returns none (no answer during timeout), resp
+        if resp is None:
+            # no response → filtered / dropped / host down
+            other_ports.append(port)    #sorts into list
+
+        elif resp.haslayer(TCP):
+            flags = resp.getlayer(TCP).flags
+
+            if flags == 0x12:  # SYN/ACK -> acknolagement ist there -> Port open & accepts
+                open_ports.append(port) #sorts into list
+            else:
+                # RST/ACK or other flags → not open
+                other_ports.append(port)
+
+        else: # resp is not none and no tcp layer
+            other_ports.append(port)
 
         time.sleep(sleep_timer)
 
+    return open_ports, other_ports
 
 
 
@@ -37,6 +64,8 @@ def scan_syn(target_ip: str, ports: list, timeout: float = 1.0, sleep_timer: flo
 # TODO: TCP Connect SCAN --type TCP
 
 # TODO: UDP SCAN --type UDP
+
+
 
 #udp_scanner
 def scan_udp(target:str,ports:list[int],sleep_timer:float):
@@ -57,10 +86,8 @@ def scan_udp(target:str,ports:list[int],sleep_timer:float):
 
         finally:
             sock.close()
-
+#───── </SCANNER> ────────────────
 # TODO: Output to JSON
-
-# TODO: Ping ICMP Packages
 
 # target IP from file
 def load_targets_from_file(filepath: str) -> list:
@@ -119,19 +146,29 @@ def parse_ports(ports: str) -> list[int]:
     return sorted(result)
 
 # run_scan
-def run_scan(target: str, ports: list, type: str, sleep_time: float) -> None:
+def run_scan(target: str, ports: list, type: str, sleep_time: float = random.uniform(2.0, 30.0)) -> None:
     """
     function takes target IP as STRING, ports as LIST, type as STRING, sleep_time as FLOAT
     """
 
-    # --> dispatch to scan function
-    match type:
-        case "SYN":
-            scan_syn(target, ports, sleep_time)
-        case "TCP":
-            scan_tcp(target, ports, sleep_time)
-        case "UDP":
-            scan_udp(target, ports, sleep_time)
+    try:
+        target_ip = socket.gethostbyname(target)
+
+    # select scan function
+    scan_function = {
+        "SYN": scan_syn,
+        "TCP": scan_tcp,
+        "UDP": scan_udp,
+    }[type]
+
+    # User notification on CLI
+
+    print("\n" + "=" * 60)
+    print(f"  Target    : {target_ip}")
+    print(f"  Scan Type : {type}")
+
+
+    print(f"  Ports     : {len(ports)} ({min(ports)}–{max(ports)})")
 
 
 
@@ -172,7 +209,7 @@ def main():
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
     parser.add_argument("--type", default="SYN", choices=["SYN", "TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
-    parser.add_argument("-s", "--sleep", default=random.randint(2, 30) , type=float, help="Sleep time in seconds (default: RANDOM range: 2-)")
+    parser.add_argument("-s", "--sleep", default=2.0 , type=float, help="Sleep time in seconds (default: RANDOM range: 2-)")
 
     args = parser.parse_args()
 
@@ -210,14 +247,7 @@ functions can be reused without triggering a scan automatically.
 if __name__ == "__main__":
     main()
 
-#
-# # Zielsystem definieren
-# target_ip = "91.99.171.164"
-#
-# # Portbereich definieren
-# start_port = 1
-# end_port = 1000
-#
+
 # # TCP-Paket erstellen
 # tcp_packet = IP(dst=target_ip)/TCP(dport=(start_port,end_port), flags="S")
 #
