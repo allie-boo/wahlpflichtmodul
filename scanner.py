@@ -201,18 +201,6 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float) -
         "UDP": scan_udp,
     }[type]
 
-    # User notification on CLI
-
-    print("\n" + "=" * 60)
-    print(f"  Target    : {target_ip}")
-    print(f"  Scan Type : {type}")
-    if len(ports) > 10:
-        print(f"  Ports     : {len(ports)} ({min(ports)}–{max(ports)})")
-    else:
-        print(f"  Ports     : {ports})")
-    print(f"  Threads   : {threads}")
-    print("\n" + "=" * 60)
-
     results = []
 
     # ThreadPoolExecutor: run up to `threads` tasks in parallel
@@ -241,12 +229,25 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float) -
     open_count = 0
     for port, status in results:
         if status == "open":
-            print(f"  [{status.upper():15s}] {port:5d}")
             open_count += 1
+    # User notification on CLI
+    if open_count > 0:
+        print("\n" + "=" * 60)
+        print(f"  Target    : {target_ip}")
+        print(f"  Scan Type : {type}")
+        if len(ports) > 10:
+            print(f"  Ports     : {len(ports)} ({min(ports)}–{max(ports)})")
+        else:
+            print(f"  Ports     : {ports})")
+        print(f"  Threads   : {threads}")
+        print("\n" + "=" * 60)
+        for port, status in results:
+            if status == "open":
+                print(f"  [{status.upper():15s}] {port:5d}")
 
-    print("═" * 60)
-    print(f"  Scan complete. {open_count} open port(s) found.")
-    print("═" * 60 + "\n")
+        print("═" * 60)
+        print(f"  Scan complete. {open_count} open port(s) found.")
+        print("═" * 60 + "\n")
 
 # ----------------- </functions> -----------------
 
