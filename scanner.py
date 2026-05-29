@@ -175,7 +175,7 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float, s
     # select scan function
     scan_function = {
         "SYN": scan_syn,
-        "TCP": scan_tcp,
+#        "TCP": scan_tcp,
         "UDP": scan_udp,
     }[type]
 
@@ -218,7 +218,7 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float, s
 
     open_count = 0
     for port, status in results:
-        if status == "open"
+        if status == "open":
             print(f"  [{status.upper():15s}] {port:5d}")
             open_count += 1
 
