@@ -83,30 +83,31 @@ def scan_syn(
 
 
 #udp_scanner
-def scan_udp(target: str, port: int, sleep_timer: float):
+def scan_udp(target: str, port: int, timeout: float = 1.0) -> tuple[int, bool]:
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    sock.settimeout(sleep_timer)
+    sock.settimeout(timeout)
 
     try:
         sock.sendto(b"test", (target, port))
 
-        data, addr = sock.recvfrom(1024)
+        #data, addr = sock.recvfrom(1024)
 
-        return (port, True)
+        return port, True
 
     except socket.timeout:
 
-        return (port, False)
+        return port, False
 
     except Exception:
 
-        return (port, False)
+        return port, False
 
     finally:
 
         sock.close()
+
 #───── </SCANNER> ────────────────
 
 # TODO: Output to JSON
