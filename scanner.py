@@ -11,6 +11,7 @@ import argparse
 import random
 import socket
 import sys
+import ipaddress
 import time
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -112,23 +113,41 @@ def scan_udp(target:str,ports:list[int],sleep_timer:float):
 # target IP from file
 def load_targets_from_file(filepath: str) -> list:
     """
-    Read a .txt file and return a list of IP addresses / hostnames.\n
-
-    Expected file format — one target per line:
-        192.168.1.1\n
-        192.168.1.2\n
-        scanme.nmap.org\n
-
-    Lines starting with # are treated as comments and ignored.
-    Empty lines are also ignored.
+    Read a .txt file and return a flat list of IP addresses.
+    Accepts:
+      - Single IPs:       192.168.1.1
+      - CIDR ranges:      192.168.1.0/24  → expands to all 256 host IPs
+      - Hostnames:        scanme.nmap.org
+      - Comments:         # this line is ignored
+      - Empty lines:      ignored
     """
     targets = []
+
     try:
         with open(filepath, "r") as f:
             for line in f:
-                line = line.strip()  # remove spaces and newlines
-                if line and not line.startswith("#"):  # skip empty lines and comments
+                line = line.strip()
+
+                # skip empty lines and comments
+                if not line or line.startswith("#"):
+                    continue
+
+                # ── Try to parse as CIDR network (e.g. 192.168.1.0/24) ──
+                try:
+                    network = ipaddress.ip_network(line, strict=False)
+                    # strict=False means 192.168.1.5/24 is accepted
+                    # and treated as 192.168.1.0/24 automatically
+
+                    # .hosts() returns all usable IPs — excludes network
+                    # address (.0) and broadcast address (.255)
+                    host_ips = [str(ip) for ip in network.hosts()]
+                    targets.extend(host_ips)
+                    print(f"[INFO] Expanded {line} → {len(host_ips)} hosts")
+
+                # ── If it's not a valid CIDR, treat it as a plain IP or hostname ──
+                except ValueError:
                     targets.append(line)
+
     except FileNotFoundError:
         print(f"[ERROR] File not found: {filepath}")
         sys.exit(1)
@@ -137,9 +156,10 @@ def load_targets_from_file(filepath: str) -> list:
         sys.exit(1)
 
     if not targets:
-        print(f"[ERROR] No valid targets found in file: {filepath}")
+        print(f"[ERROR] No valid targets found in: {filepath}")
         sys.exit(1)
 
+    print(f"[INFO] Total targets after expansion: {len(targets)}")
     return targets
 
 # port parser
