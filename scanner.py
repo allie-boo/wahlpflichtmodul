@@ -28,7 +28,7 @@ def scan_syn(
         target_ip: str,
         port: int,
         sleep_timer: float,
-        timeout: float = 1.0 ) -> tuple[bool, int]: #returns bool and port
+        timeout: float = 1.0 ) -> tuple[int, bool]: #returns bool and port
 
     tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S") #Zieladresse and header
     resp = sr1(
@@ -41,9 +41,9 @@ def scan_syn(
     if (resp is not None #at least one answer
             and resp.haslayer(TCP)  #real tcp answer, SYN/ACK oder RST/ACK
             and resp.getlayer(TCP).flags == 0x12):  #0x12: SYN + ACK (SYN/ACK) -> port open
-        return True, port
+        return port, True
 
-    return False, port
+    return port, False
 # -----------------------oder------------------------------
     # open_ports: list[int] = []
     # other_ports: list[int] = [] #closed, filtered, no answer
@@ -104,6 +104,7 @@ def scan_udp(target:str,ports:list[int],sleep_timer:float):
         finally:
             sock.close()
 #───── </SCANNER> ────────────────
+
 # TODO: Output to JSON
 
 # target IP from file
