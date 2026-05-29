@@ -2,6 +2,7 @@
 #function names: snake_case
 #variable names: camelCase
 
+
 # ----------------- </rules> ------------------
 
 
@@ -10,6 +11,7 @@ from scapy.all import IP, TCP
 import argparse
 import random
 import sys
+import time
 
 # ----------------- </import> -----------------
 
@@ -17,10 +19,15 @@ import sys
 # ----------------- <functions> -----------------
 
 # TODO: Function SCANNER --type SYN
-#target ip (string), port (int), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
-def scan_syn(target_ip: str, port: int, timeout: float = 1.0, sleep_timer: float) -> tuple:
+#target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
+def scan_syn(target_ip: str, ports: list, timeout: float = 1.0, sleep_timer: float) -> tuple:
 
-    tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+    for port in ports:
+
+        tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+
+
+        time.sleep(sleep_timer)
 
 
 
