@@ -26,38 +26,54 @@ from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
 #target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
 def scan_syn(
         target_ip: str,
-        ports: list[int],
+        port: int,
         sleep_timer: float,
-        timeout: float = 1.0 ) -> tuple[list[int], list[int]]: #returns two lists type int
+        timeout: float = 1.0 ) -> tuple[bool, int]: #returns bool and port
 
-    open_ports: list[int] = []
-    other_ports: list[int] = [] #closed, filtered, no answer
+    tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S") #Zieladresse and header
+    resp = sr1(
+        tcp_packet, #sends and waits for one answer
+        timeout=timeout, #max wait time
+        verbose=False)  #verbose stops standard scapy return
 
-    for port in ports:
-        tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+    time.sleep(sleep_timer)
 
-        #Send and wait for response
-        resp = sr1(tcp_packet, timeout=timeout, verbose=False) #verbose stops standard scapy return
-        #returns none (no answer during timeout), resp
-        if resp is None:
-            # no response → filtered / dropped / host down
-            other_ports.append(port)    #sorts into list
+    if (resp is not None #at least one answer
+            and resp.haslayer(TCP)  #real tcp answer, SYN/ACK oder RST/ACK
+            and resp.getlayer(TCP).flags == 0x12):  #0x12: SYN + ACK (SYN/ACK) -> port open
+        return True, port
 
-        elif resp.haslayer(TCP):
-            flags = resp.getlayer(TCP).flags
-
-            if flags == 0x12:  # SYN/ACK -> acknolagement ist there -> Port open & accepts
-                open_ports.append(port) #sorts into list
-            else:
-                # RST/ACK or other flags → not open
-                other_ports.append(port)
-
-        else: # resp is not none and no tcp layer
-            other_ports.append(port)
-
-        time.sleep(sleep_timer)
-
-    return open_ports, other_ports
+    return False, port
+# -----------------------oder------------------------------
+    # open_ports: list[int] = []
+    # other_ports: list[int] = [] #closed, filtered, no answer
+    #
+    #
+    # tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+    #
+    # #Send and wait for response
+    # resp = sr1(tcp_packet, timeout=timeout, verbose=False) #verbose stops standard scapy return
+    # #returns none (no answer during timeout), resp
+    # if resp is None:
+    #      # no response → filtered / dropped / host down
+    #     other_ports.append(port)    #sorts into list
+    #
+    # elif resp.haslayer(TCP):
+    #     flags = resp.getlayer(TCP).flags
+    #
+    #     if flags == 0x12:  # SYN/ACK -> acknowledgement ist there -> Port open & accepts
+    #         open_ports.append(port) #sorts into list
+    #     else:
+    #          # RST/ACK or other flags → not open
+    #         other_ports.append(port)
+    #
+    # else: # resp is not none and no tcp layer
+    #     other_ports.append(port)
+    #
+    # time.sleep(sleep_timer)
+    #
+    # return open_ports, other_ports
+# -----------------------/oder------------------------------
 
 
 
