@@ -7,17 +7,21 @@
 
 
 # ----------------- <import> -----------------
-from scapy.all import IP, TCP, sr1
+
 import argparse
 import random
+import socket
 import sys
 import time
+
+from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
 
 # ----------------- </import> -----------------
 
 
 # ----------------- <functions> -----------------
 
+#───── <SCANNER> ────────────────
 # TODO: Function SCANNER --type SYN
 #target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
 def scan_syn(
@@ -59,9 +63,9 @@ def scan_syn(
 
 # TODO: UDP SCAN --type UDP
 
-# TODO: Output to JSON
+#───── </SCANNER> ────────────────
 
-# TODO: Ping ICMP Packages
+# TODO: Output to JSON
 
 # target IP from file
 def load_targets_from_file(filepath: str) -> list:
@@ -120,19 +124,29 @@ def parse_ports(ports: str) -> list[int]:
     return sorted(result)
 
 # run_scan
-def run_scan(target: str, ports: list, type: str, sleep_time: float) -> None:
+def run_scan(target: str, ports: list, type: str, sleep_time: float = random.uniform(2.0, 30.0)) -> None:
     """
     function takes target IP as STRING, ports as LIST, type as STRING, sleep_time as FLOAT
     """
 
-    # --> dispatch to scan function
-    match type:
-        case "SYN":
-            scan_syn(target, ports, sleep_time)
-        case "TCP":
-            scan_tcp(target, ports, sleep_time)
-        case "UDP":
-            scan_udp(target, ports, sleep_time)
+    try:
+        target_ip = socket.gethostbyname(target)
+
+    # select scan function
+    scan_function = {
+        "SYN": scan_syn,
+        "TCP": scan_tcp,
+        "UDP": scan_udp,
+    }[type]
+
+    # User notification on CLI
+
+    print("\n" + "=" * 60)
+    print(f"  Target    : {target_ip}")
+    print(f"  Scan Type : {type}")
+
+
+    print(f"  Ports     : {len(ports)} ({min(ports)}–{max(ports)})")
 
 
 
@@ -173,7 +187,7 @@ def main():
     parser.add_argument("-p", "--ports", default="1-1024", help="Port range, e.g. 22,80,100-200  (default: 1-1024)")
     parser.add_argument("--type", default="SYN", choices=["SYN", "TCP", "UDP"], help="Scan type  (default: SYN)")
     parser.add_argument("--port-randomize", help="if used the order of the ports  will be randomized", action="store_true")
-    parser.add_argument("-s", "--sleep", default=random.randint(2, 30) , type=float, help="Sleep time in seconds (default: RANDOM range: 2-)")
+    parser.add_argument("-s", "--sleep", default=2.0 , type=float, help="Sleep time in seconds (default: RANDOM range: 2-)")
 
     args = parser.parse_args()
 
@@ -211,14 +225,7 @@ functions can be reused without triggering a scan automatically.
 if __name__ == "__main__":
     main()
 
-#
-# # Zielsystem definieren
-# target_ip = "91.99.171.164"
-#
-# # Portbereich definieren
-# start_port = 1
-# end_port = 1000
-#
+
 # # TCP-Paket erstellen
 # tcp_packet = IP(dst=target_ip)/TCP(dport=(start_port,end_port), flags="S")
 #
