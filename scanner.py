@@ -75,7 +75,7 @@ def scan_syn(
     # return open_ports, other_ports
 # -----------------------/oder------------------------------
 
-# TODO: Banner Grabber
+# TODO: Banner Grabber TCP
 
 
 
@@ -244,19 +244,24 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float) -
                 port, status = future.result()
                 if status:
                     results.append((port, "open", type))
-                results.append((port, "Blocked / Filtered / Closed", type))
-            except Exception as e:
+                else:
+                    results.append((port, "Blocked / Filtered / Closed", type))
+            except Exception:
                 port = futures[future]
                 results.append((port, "error", type))
 
     # Sort results by port number before printing
     results.sort(key=lambda x: x[0])
 
+    #print(results)
+
     open_count = 0
     for port, status, type_of in results:
         if status == "open":
             open_count += 1
     # User notification on CLI
+    #print(open_count)
+
     if open_count > 0:
         print("\n" + "=" * 60)
         print(f"  Target    : {target_ip}")
