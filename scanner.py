@@ -207,27 +207,25 @@ def run_scan(target: str, ports: list, type: str,threads: int, timeout: float, s
         # as_completed() yields futures as they finish (not in order)
         for future in as_completed(futures):
             try:
-                port, status, proto = future.result()
-                results.append((port, status, proto))
+                port, status = future.result()
+                if status:
+                    results.append((port, "open"))
+                results.append((port, "Blocked / Filtered / Closed"))
             except Exception as e:
                 port = futures[future]
-                results.append((port, "error", type))
+                results.append((port, "error"))
 
     # Sort results by port number before printing
     results.sort(key=lambda x: x[0])
 
     open_count = 0
-    for port, status, proto in results:
-        if status == "open" or status == "open|filtered":
-            try:
-                service = socket.getservbyport(port, proto.lower())
-            except:
-                service = "unknown"
-            print(f"  [{status.upper():15s}] {port:5d}/{proto.lower():<4s}  {service}")
+    for port, status in results:
+        if status == "open"
+            print(f"  [{status.upper():15s}] {port:5d}")
             open_count += 1
 
     print("═" * 60)
-    print(f"  Scan complete. {open_count} open/open|filtered port(s) found.")
+    print(f"  Scan complete. {open_count} open port(s) found.")
     print("═" * 60 + "\n")
 
 # ----------------- </functions> -----------------
