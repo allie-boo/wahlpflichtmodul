@@ -23,7 +23,7 @@ from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
 # ----------------- <functions> -----------------
 
 #───── <SCANNER> ────────────────
-# TODO: Function SCANNER --type SYN
+# SYN Scanner --type SYN
 #target ip (string), port (list), timeout (float, default= 1.0), sleep_timer (float, random number between 2.0-30.0 or user input)
 def scan_syn(
         target_ip: str,
