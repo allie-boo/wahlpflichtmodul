@@ -27,7 +27,6 @@ from scapy.all import IP, TCP, UDP, ICMP, sr1, conf
 def scan_syn(
         target_ip: str,
         port: int,
-        sleep_timer: float,
         timeout: float = 1.0 ) -> tuple[int, bool]: #returns bool and port
 
     tcp_packet = IP(dst=target_ip) / TCP(dport=port, flags="S") #Zieladresse and header
@@ -35,8 +34,6 @@ def scan_syn(
         tcp_packet, #sends and waits for one answer
         timeout=timeout, #max wait time
         verbose=False)  #verbose stops standard scapy return
-
-    time.sleep(sleep_timer)
 
     if (resp is not None #at least one answer
             and resp.haslayer(TCP)  #real tcp answer, SYN/ACK oder RST/ACK
